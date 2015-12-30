@@ -19,29 +19,50 @@ let filterDoublets x (w: Word) i e =
     Regex.Match(x,"^"+w.Substring(0,i)+anyChar+w.Substring(i+1)+"$").Success
     && not (List.contains x e)
 
-let buildNextDoublets (w:Word) = 
-    let rec oneCharDoublet l i e =
-        if i = w.Length then
-            l
+let buildWordList t =
+    let rec accWordList t acc =
+        if t.nodes.Length = 0 then t.Word::acc
+        else
+            let localAcc = t.Word::acc
+            List.map (fun n -> accWordList n localAcc) t.nodes 
+            |> List.concat
+    accWordList t []
+
+let buildNextDoublets t root = 
+    let word = t.Word
+    let rec oneCharDoublet lws i excludeWords =
+        if i = word.Length then lws
          else
-            let founds = (List.filter (fun x -> filterDoublets x w i e) words)
-            let newEx = List.append founds e
-            let newFounds = List.append founds l
+            let founds = (List.filter (fun x -> filterDoublets x word i excludeWords) words)
+            let newEx = List.append founds excludeWords
+            let newFounds = List.append founds lws
             oneCharDoublet newFounds (i+1) newEx
-    oneCharDoublet [] 0 [w]
+
+    let excludeWords = buildWordList root
+    oneCharDoublet [] 0 excludeWords |> List.map (fun w -> {Word=w;nodes=[]})
 
 let findDoubletInTree r w2 = 
-    let rec getList (t:doubletTree list) l =
-        let current = t.Head
-        if current.Word = w2 then (current.Word::l)
-        else if current.nodes.Length = 0 then []
-        else getList t.Tail (current.Word::l)
-            
-    getList r.nodes []
+    let rec getList t l =
+        if t.Word = w2 then t.Word::l
+        else if t.nodes.Length = 0 then []
+        else
+            let localAcc = t.Word::l
+            let finalAcc = List.fold (fun acc node -> getList node acc) localAcc t.nodes
+            finalAcc
+                
+    getList r [] |> List.rev
 
-let buildNextLevelTree root = 
-    let nextDoublets = List.map (fun w -> {Word=w;nodes=[]}) (buildNextDoublets root.Word)
-    {root with nodes = nextDoublets}
+let buildNextLevelTree root =
+    let rec buildNextLevel t = 
+        if t.nodes.Length = 0 then 
+            {Word=t.Word; nodes = buildNextDoublets t root}
+        else 
+            {Word=t.Word; nodes = List.map (fun n -> buildNextLevel n) t.nodes}
+    buildNextLevel root
+
+let root = {Word="head";nodes=[]}
+let l1 = buildNextLevelTree root
+let createTree w = {Word=w;nodes=[]}
 
 let doublets (w1:Word,w2:Word) = 
     let root = {Word = w1; nodes = []}
@@ -66,4 +87,4 @@ let tests () =
     test <@ doublets ("ye", "freezer") = [] @>
 
 // run the tests
-tests ()
+//tests ()
