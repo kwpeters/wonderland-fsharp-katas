@@ -43,14 +43,19 @@ let buildNextDoublets t root =
 
 let findDoubletInTree r w2 = 
     let rec getList t l =
-        if t.Word = w2 then t.Word::l
-        else if t.nodes.Length = 0 then []
+        if fst l then l
+        else if t.Word = w2 then 
+            (true, t.Word::snd l)
+        else if t.nodes.Length = 0 then 
+            (false,snd l)
         else
-            let localAcc = t.Word::l
+            let localAcc = (false, t.Word::snd l)
             let finalAcc = List.fold (fun acc node -> getList node acc) localAcc t.nodes
             finalAcc
                 
-    getList r [] |> List.rev
+    let result = getList r (false,[])
+    if fst result then snd result |> List.rev
+    else []
 
 let buildNextLevelTree root =
     let rec buildNextLevel t = 
@@ -58,11 +63,8 @@ let buildNextLevelTree root =
             {Word=t.Word; nodes = buildNextDoublets t root}
         else 
             {Word=t.Word; nodes = List.map (fun n -> buildNextLevel n) t.nodes}
-    buildNextLevel root
 
-let root = {Word="head";nodes=[]}
-let l1 = buildNextLevelTree root
-let createTree w = {Word=w;nodes=[]}
+    buildNextLevel root
 
 let doublets (w1:Word,w2:Word) = 
     let root = {Word = w1; nodes = []}
@@ -71,8 +73,10 @@ let doublets (w1:Word,w2:Word) =
         if result.Length <> 0 then result
         else 
             let level = buildNextLevelTree t
-            findInTree level
+            if t = level then [] // Not any more levels, result not found
+            else  findInTree level
     findInTree root
+
 
 #r @"../packages/Unquote/lib/net45/Unquote.dll"
 open Swensen.Unquote
@@ -87,4 +91,4 @@ let tests () =
     test <@ doublets ("ye", "freezer") = [] @>
 
 // run the tests
-//tests ()
+tests ()
