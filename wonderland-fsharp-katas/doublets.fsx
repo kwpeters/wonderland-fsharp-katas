@@ -15,31 +15,25 @@ type doubletTree = {
 
 let anyChar = "[a-z]"
 
-let filterDoublets x (w: Word) i e =
+let filterDoublets x (w: Word) i =
     Regex.Match(x,"^"+w.Substring(0,i)+anyChar+w.Substring(i+1)+"$").Success
-    && not (List.contains x e)
 
 let buildWordList t =
-    let rec accWordList t acc =
-        if t.nodes.Length = 0 then t.Word::acc
-        else
-            let localAcc = t.Word::acc
-            List.map (fun n -> accWordList n localAcc) t.nodes 
-            |> List.concat
-    accWordList t []
+    t.Word::List.fold (fun acc node -> node.Word::acc) [] t.nodes
 
 let buildNextDoublets t root = 
     let word = t.Word
-    let rec oneCharDoublet lws i excludeWords =
+    let rec oneCharDoublet lws i filteredWords =
         if i = word.Length then lws
          else
-            let founds = (List.filter (fun x -> filterDoublets x word i excludeWords) words)
-            let newEx = List.append founds excludeWords
+            let founds = List.filter (fun x -> filterDoublets x word i) filteredWords
+            let newWords = List.filter (fun w -> List.contains w founds |> not) filteredWords
             let newFounds = List.append founds lws
-            oneCharDoublet newFounds (i+1) newEx
+            oneCharDoublet newFounds (i+1) newWords
 
     let excludeWords = buildWordList root
-    oneCharDoublet [] 0 excludeWords |> List.map (fun w -> {Word=w;nodes=[]})
+    let newWords = List.filter (fun w -> List.contains w excludeWords |> not) words
+    oneCharDoublet [] 0 newWords |> List.map (fun w -> {Word=w;nodes=[]})
 
 let findDoubletInTree r w2 = 
     let rec getList t l =
