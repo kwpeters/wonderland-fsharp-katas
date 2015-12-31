@@ -18,8 +18,8 @@ let anyChar = "[a-z]"
 let filterDoublets x (w: Word) i =
     Regex.Match(x,"^"+w.Substring(0,i)+anyChar+w.Substring(i+1)+"$").Success
 
-let buildWordList t =
-    t.Word::List.fold (fun acc node -> node.Word::acc) [] t.nodes
+let rec buildWordList t =
+    List.fold (fun acc node -> buildWordList node @ acc) [t.Word] t.nodes
 
 let buildNextDoublets t root = 
     let word = t.Word
@@ -37,19 +37,17 @@ let buildNextDoublets t root =
 
 let findDoubletInTree r w2 = 
     let rec getList t l =
-        if fst l then l
-        else if t.Word = w2 then 
-            (true, t.Word::snd l)
-        else if t.nodes.Length = 0 then 
-            (false,snd l)
+        if t.Word = w2 then t.Word::l
+        else if t.nodes.Length = 0 then []
         else
-            let localAcc = (false, t.Word::snd l)
-            let finalAcc = List.fold (fun acc node -> getList node acc) localAcc t.nodes
-            finalAcc
+            let localAcc = t.Word::l
+            let listResults = List.map (fun node -> getList node localAcc) t.nodes
+            let resOpt = listResults |> List.filter (fun n -> n.Length > 0) |> List.tryHead
+            match resOpt with
+            | None -> []
+            | Some x -> x
                 
-    let result = getList r (false,[])
-    if fst result then snd result |> List.rev
-    else []
+    getList r [] |> List.rev
 
 let buildNextLevelTree root =
     let rec buildNextLevel t = 
