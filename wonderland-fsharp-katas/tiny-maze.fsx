@@ -14,8 +14,46 @@ type Path =
 
 type Solution = Path [,]
 
+type ValidCell =
+    | ValidCell of int * int
+    | NotExists
+
 let solve (maze:Maze) : Solution =
-    failwith "boom"
+    let height = Array2D.length1 maze
+    let width = Array2D.length2 maze
+    let visited = Array2D.create height width false
+
+    let isValidCell r c = 
+        let height = Array2D.length1 maze
+        let width = Array2D.length2 maze
+        0 <= r && r < height && 0 <= c && c < width && maze.[r,c] <> Wall
+
+    let isExit r c = 
+        isValidCell r c && maze.[r,c] = Exit
+
+    let isValidNotVisitedCell r c (visited : bool[,]) maze = 
+        isValidCell r c && (not visited.[r,c])
+
+    let getNextValidNeighbour r c visited maze = 
+        if isValidNotVisitedCell (r+1) c visited maze then ValidCell (r+1,c)
+        else if isValidNotVisitedCell (r-1) c visited maze then ValidCell (r-1,c)
+        else if isValidNotVisitedCell r (c+1) visited maze then ValidCell (r,c+1)
+        else if isValidNotVisitedCell r (c-1) visited maze then ValidCell (r,c-1)
+        else NotExists
+
+
+    let rec innerSolver row col visited pathSolution : (int*int) list =
+        let nextValidCell = getNextValidNeighbour row col visited maze
+        match nextValidCell with
+        | NotExists -> failwith "There is no solution"
+        | ValidCell (nr,nc) ->  if isExit nr nc then (nr,nc):: pathSolution
+                                else
+                                    visited.[nr,nc] <- true
+                                    innerSolver nr nc visited ((nr,nc):: pathSolution)
+
+    let path = innerSolver 0 0 visited [(0,0)]
+    Array2D.mapi (fun r c e -> if List.contains (r,c) path then X else O) maze
+     
 
 
 #r @"../packages/Unquote/lib/net45/Unquote.dll"
