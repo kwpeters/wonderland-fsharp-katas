@@ -15,7 +15,7 @@ type Path =
 type Solution = Path [,]
 
 let solve (maze:Maze) : Solution =
-    failwith "boom"
+    Array2D.map (fun e -> if e = Wall then O else X) maze
 
 
 #r @"../packages/Unquote/lib/net45/Unquote.dll"
