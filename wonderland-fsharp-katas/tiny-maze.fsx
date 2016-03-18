@@ -52,8 +52,7 @@ let solve (maze:Maze) : Solution =
                                     innerSolver nr nc visited ((nr,nc):: pathSolution)
 
     let path = innerSolver 0 0 visited [(0,0)]
-    Array2D.mapi (fun r c e -> if List.contains (r,c) path then X else O) maze
-     
+    Array2D.mapi (fun r c e -> if List.contains (r,c) path then X else O) maze     
 
 
 #r @"../packages/Unquote/lib/net45/Unquote.dll"
