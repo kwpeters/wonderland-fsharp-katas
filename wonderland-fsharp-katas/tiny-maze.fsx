@@ -35,24 +35,26 @@ let solve (maze:Maze) : Solution =
         isValidCell r c && (not visited.[r,c])
 
     let getNextValidNeighbour r c visited maze = 
-        if isValidNotVisitedCell (r+1) c visited maze then ValidCell (r+1,c)
-        else if isValidNotVisitedCell (r-1) c visited maze then ValidCell (r-1,c)
+        if isValidNotVisitedCell (r+1) c visited maze then ValidCell (r+1,c)        
         else if isValidNotVisitedCell r (c+1) visited maze then ValidCell (r,c+1)
+        else if isValidNotVisitedCell (r-1) c visited maze then ValidCell (r-1,c)
         else if isValidNotVisitedCell r (c-1) visited maze then ValidCell (r,c-1)
         else NotExists
 
 
-    let rec innerSolver row col visited pathSolution : (int*int) list =
+    let rec innerSolver row col visited pathSolution : (int*int) list =        
         let nextValidCell = getNextValidNeighbour row col visited maze
         match nextValidCell with
-        | NotExists -> failwith "There is no solution"
-        | ValidCell (nr,nc) ->  if isExit nr nc then (nr,nc):: pathSolution
-                                else
-                                    visited.[nr,nc] <- true
-                                    innerSolver nr nc visited ((nr,nc):: pathSolution)
+        | NotExists -> match pathSolution with
+                       | (_::(pr,pc)::xs) ->  innerSolver pr pc visited ((pr,pc)::xs)
+                       | _ -> failwith "No valid solution" 
+        | ValidCell (nr,nc) ->  if isExit nr nc then (nr,nc)::pathSolution
+                                else                                 
+                                    visited.[nr,nc] <- true   
+                                    innerSolver nr nc visited ((nr,nc)::pathSolution)
 
     let path = innerSolver 0 0 visited [(0,0)]
-    Array2D.mapi (fun r c e -> if List.contains (r,c) path then X else O) maze     
+    Array2D.mapi (fun r c _ -> if List.contains (r,c) path then X else O) maze     
 
 
 #r @"../packages/Unquote/lib/net45/Unquote.dll"
@@ -75,6 +77,22 @@ let tests () =
         |> array2D
 
     test <@ solution3x3 = solve maze3x3 @>
+    
+    // sample 3x3 maze
+    let maze3x3' =
+        [ [Start; Wall; Wall]
+          [Empty;  Empty; Empty]
+          [Empty;  Wall; Exit]]
+        |> array2D
+
+    // sample 3x3 maze solution
+    let solution3x3' =
+        [ [X; O; O]
+          [X; X; X]
+          [O; O; X]]
+        |> array2D
+
+    test <@ solution3x3' = solve maze3x3' @>
 
     // sample 4x4 maze
     let maze4x4 =
