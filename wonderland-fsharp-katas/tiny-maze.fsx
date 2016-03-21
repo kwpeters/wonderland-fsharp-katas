@@ -24,8 +24,6 @@ let solve (maze:Maze) : Solution =
     let visited = Array2D.create height width false
 
     let isValidCell r c = 
-        let height = Array2D.length1 maze
-        let width = Array2D.length2 maze
         0 <= r && r < height && 0 <= c && c < width && maze.[r,c] <> Wall
 
     let isExit r c = 
@@ -34,7 +32,7 @@ let solve (maze:Maze) : Solution =
     let isValidNotVisitedCell r c (visited : bool[,]) maze = 
         isValidCell r c && (not visited.[r,c])
 
-    let getNextValidNeighbour r c visited maze = 
+    let getNextValidNeighbour r c visited = 
         if isValidNotVisitedCell (r+1) c visited maze then ValidCell (r+1,c)        
         else if isValidNotVisitedCell r (c+1) visited maze then ValidCell (r,c+1)
         else if isValidNotVisitedCell (r-1) c visited maze then ValidCell (r-1,c)
@@ -42,8 +40,8 @@ let solve (maze:Maze) : Solution =
         else NotExists
 
 
-    let rec innerSolver row col visited pathSolution : (int*int) list =        
-        let nextValidCell = getNextValidNeighbour row col visited maze
+    let rec innerSolver row col visited pathSolution =        
+        let nextValidCell = getNextValidNeighbour row col visited
         match nextValidCell with
         | NotExists -> match pathSolution with
                        | (_::(pr,pc)::xs) ->  innerSolver pr pc visited ((pr,pc)::xs)
