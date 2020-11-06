@@ -1,7 +1,5 @@
 // See the file card-game.md for detailed information.
 
-// feel free to use these cards or use your own data structure
-
 type Suit =
     | Spade
     | Club
@@ -29,22 +27,32 @@ let ascendingRanks =
     ]
 
 
+// An entire deck of cards in ascending War value.
 let ascendingDeck =
     seq {
         for rank in ascendingRanks do
             for suit in ascendingSuits -> suit, rank
     }
 
-
+//
+// Converts a card into an integer representing its War value.
+//
 let cardToInt (theCard: Card): int =
     ascendingDeck |> Seq.findIndex (fun curCard -> curCard = theCard)
 
-
+//
+// Plays a single round of War and returns the winning card.
+//
 let playRound (card1:Card, card2:Card) =
+    // Return the card with the maximum War value.
     [card1; card2]
     |> List.maxBy(fun curCard -> cardToInt(curCard))
 
 
+//
+// Splits a list into a tuple containing the first item and a list containing
+// all subseequnt items.
+//
 let pop a =
     (List.head(a), a.[1..])
 
@@ -55,6 +63,9 @@ type GameResult =
         NumIterations: int
     }
 
+//
+// Plays an entire game of War with the given two hands.
+//
 let playGame (hand1:Card list, hand2:Card list): GameResult =
 
     // Recursive function that implements playGame().
@@ -76,11 +87,12 @@ let playGame (hand1:Card list, hand2:Card list): GameResult =
     playGameImpl (hand1, hand2, 0)
 
 
+////////////////////////////////////////////////////////////////////////////////
+// Tests
+////////////////////////////////////////////////////////////////////////////////
 
 #r @"../packages/Unquote/lib/net45/Unquote.dll"
 open Swensen.Unquote
-
-
 
 let tests () =
 
@@ -110,5 +122,4 @@ let tests () =
     printfn "TODO: the player loses when they run out of cards"
     test <@ playGame ([(Heart, Value 9); (Club, Value 4)], [(Diamond, Queen); (Spade, Value 2)]) = {WinningPlayer=2; NumIterations=4} @>
 
-// run the tests
 tests ()
