@@ -37,7 +37,7 @@ let ascendingDeck =
 //
 // Converts a card into an integer representing its War value.
 //
-let cardToInt (theCard: Card): int =
+let cardToWarValue (theCard: Card): int =
     ascendingDeck |> Seq.findIndex (fun curCard -> curCard = theCard)
 
 //
@@ -46,7 +46,7 @@ let cardToInt (theCard: Card): int =
 let playRound (card1:Card, card2:Card) =
     // Return the card with the maximum War value.
     [card1; card2]
-    |> List.maxBy(fun curCard -> cardToInt(curCard))
+    |> List.maxBy(fun curCard -> cardToWarValue(curCard))
 
 
 //
