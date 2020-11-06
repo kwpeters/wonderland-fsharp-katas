@@ -83,7 +83,7 @@ let playGame (hand1:Card list, hand2:Card list): GameResult =
             else
                 playGameImpl (remainingHand1, remainingHand2 @ [card1; card2], iteration + 1)
 
-    // Let the recursion begin.
+    // Kick start the recursion.
     playGameImpl (hand1, hand2, 0)
 
 
